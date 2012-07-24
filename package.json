@@ -1,0 +1,11 @@
+{
+    "name": "OrderGroove_Minify"
+    , "author": "David Newell"
+    , "version": "0.0.1"
+    , "dependencies": {
+        "uglify-js": "*"
+        , "optparse": "*"
+        , "handlebars": "*"
+        , "coffee-script": "*"
+    }
+}
