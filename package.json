@@ -7,5 +7,7 @@
         , "optparse": "*"
         , "handlebars": "*"
         , "coffee-script": "*"
+        , "jshint": "*"
+        , "jasmine-node": "*"
     }
 }

@@ -1,26 +1,40 @@
 #!/usr/bin/env coffee
 
 fs = require 'fs'
-utilities = require('./utilities')
+utilities = require './utilities'
+path = require 'path'
 options = require('./parser').options
 
-output = ""
+if options.lint
+  readFunc = (filename) ->
+    utilities.hint filename
+    utilities.replaceRequires "#{fs.readFileSync(filename, 'utf-8')}\n"
+else
+  readFunc = (filename) ->
+    utilities.replaceRequires "#{fs.readFileSync(filename, 'utf-8')}\n"
+
+output = "//#{JSON.stringify options}\n"
+
+if options.merchant
+  dirArray = process.cwd().split '/'
+  merchant_id = dirArray[dirArray.length-1]
+  output = "if(typeof og_settings === 'undefined') { og_settings = {}; }; og_settings.merchant_id = '#{merchant_id}';\n"
 
 if options.startFilename
-  output += fs.readFileSync(options.startFilename, 'utf-8')
+  output += readFunc options.startFilename
 
 if options.coreFilename
-  output += fs.readFileSync(options.coreFilename, 'utf-8')
+  output += readFunc options.coreFilename
 
-output += utilities.requiredFiles()
+if options.base
+  output += utilities.requiredFiles options.lint
 
 if options.endFilename
-  output += fs.readFileSync(options.endFilename, 'utf-8')
+  output += readFunc options.endFilename
 
-if options.controller
-  for i in [1..4]
-    options.writeFunction output + fs.readFileSync("#{i}/controller.js", 'utf-8'),
-      fs.createWriteStream "#{i}/#{options.output}", {flags: 'w'}
+if options.output
+  stream = fs.createWriteStream options.output, {flags: 'w'}
 else
-  options.writeFunction output,
-    fs.createWriteStream options.output, {flags: 'w'}
+  stream = process.stdout
+
+options.writeFunction output, stream

@@ -5,19 +5,25 @@ switches = [
   ['-v', '--version NUMBER', 'Version of Widget Core']
   , ['-o', '--output FILENAME', 'Output file for concatenated files']
   , ['-u', '--uncompressed', 'Do not minify or gzip the output']
-  , ['-c', '--controller', 'Include common files with the controllers']
-  , ['-s', '--start FILENAME', 'Include a file at the start of the output']
-  , ['-e', '--end FILENAME', 'Include a file at the end of the output']
+  , ['-s', '--startFilename FILENAME', 'Include a file at the start of the output']
+  , ['-e', '--endFilename FILENAME', 'Include a file at the end of the output']
   , ['-C', '--config FILENAME', 'use the options of the JSON config file']
+  , ['-l', '--lint', 'Lint the files and output the results']
+  , ['-m', '--merchant', 'Include the merchant id at the start of the output']
+  , ['-h', '--help', 'This help text']
+  , ['-b', '--base', 'Include all files in lib, templates and common folders']
 ]
 
 options =
-  output: 'output.js'
   coreFilename: ""
+  output: ''
   writeFunction: utilities.minifiedWrite
   controller: false
   startFilename: ""
   endFilename: ""
+  lint: false
+  merchant: false
+  base: false
 
 getVersion = (num) ->
   folder = if num > 1 then "/v#{num}" else ''
@@ -27,13 +33,15 @@ getVersion = (num) ->
 parser = new optparse.OptionParser(switches)
 
 parser.on 'config', (opt, filename) ->
-  config = require "#{process.cwd()}/#{filename}"
-  options.output = config.output || options.output
-  options.coreFilename = if config.version? then getVersion config.version
-  options.writeFunction = if config.uncompressed then utilities.uncompressedWrite else utilities.minifiedWrite
-  options.controller = config.controller
-  options.startFilename = config.start || options.startFilename
-  options.endFilename = config.end || options.endFilename
+  options = require "#{process.cwd()}/#{filename}"
+  options.coreFilename = if options.version? then getVersion options.version
+  options.writeFunction = if options.uncompressed then utilities.uncompressedWrite else utilities.minifiedWrite
+
+parser.on 'help', (opt) ->
+  console.log parser
+
+parser.on 1, (name) ->
+  options.output = name
 
 parser.on 'output', (opt, name) ->
   options.output = name
@@ -44,15 +52,23 @@ parser.on 'version', (opt, num) ->
 parser.on 'uncompressed', ->
   options.writeFunction = utilities.uncompressedWrite
 
-parser.on 'controller', ->
-  options.controller = true
-
-
-parser.on 'start', (opt, name) ->
+parser.on 0, (name) ->
   options.startFilename = name
 
-parser.on 'end', (opt, name) ->
+parser.on 'startFilename', (opt, name) ->
+  options.startFilename = name
+
+parser.on 'endFilename', (opt, name) ->
   options.endFilename = name
+
+parser.on 'lint', (opt) ->
+  options.lint = true
+
+parser.on 'merchant', (opt) ->
+  options.merchant = true
+
+parser.on 'base', (opt) ->
+  options.base = true
 
 parser.parse process.argv[2..]
 
