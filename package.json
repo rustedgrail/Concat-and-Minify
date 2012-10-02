@@ -10,4 +10,10 @@
         , "jshint": "*"
         , "jasmine-node": "*"
     }
+    , "scripts": {
+        "test": "jasmine-node --coffee utilities.spec.coffee"
+    }
+    , "bin": {
+        "deploy": "./deploy.coffee"
+    }
 }
